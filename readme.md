@@ -1,4 +1,4 @@
-#ParaILP
+# ParaILP
 ## Run
 ```
 mkdir build
