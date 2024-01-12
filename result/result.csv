@@ -1,3 +1,4 @@
+instance name, solver name, cutoff, objective value
 2club200v15p5scn.mps, HiGHS, 10, N/A
 2club200v15p5scn.mps, FiberSCIP, 10, -31.0
 2club200v15p5scn.mps, Gurobi-comp, 10, -62.0
