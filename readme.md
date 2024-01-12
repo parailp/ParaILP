@@ -6,5 +6,5 @@ cd code
 chmod +x run
 ./run --instance=<instance.mps> --cutoff=<cutoff>
 ```
-<instance.mps>: path for the ilp instance
-<cutoff>: seconds to run
+1. \<instance.mps>: path for the ilp instance
+2. \<cutoff>: seconds to run
