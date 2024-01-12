@@ -1,4 +1,5 @@
-# Run
+#ParaILP
+## Run
 ```
 mkdir build
 cd code
