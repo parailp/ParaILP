@@ -476,10 +476,8 @@ void Master::ReadMPS()
       con.rhs = -con.rhs;
     }
   }
-  printf("c #variables: %ld\nc #constraints: %ld\n", modelVarUtil.varNum, modelConUtil.conNum - 1);
   auto now = chrono::high_resolution_clock::now();
   double readTime = chrono::duration_cast<chrono::milliseconds>(now - clk_st_global).count() / 1000.0;
-  printf("c read time: %f\n", readTime);
   TightenBound();
   if (!TightBoundGlobally())
   {
@@ -535,8 +533,4 @@ void Master::ReadMPS()
       Polarity[varIdx] = IC + IO;
     }
   }
-  printf("c deleteVarNum: %d\n", deleteVarNum);
-  printf("c inferVarNum: %d\n", inferVarNum);
-  printf("c deleteConNum: %d\n", deleteConNum);
-  printf("c isBin: %d\n", modelVarUtil.isBin);
 }
