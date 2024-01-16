@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <boost/thread.hpp>
 #include <boost/thread/thread.hpp>
+#include <atomic>
 using namespace std;
 using Integer = __int128_t; // for coefficient and variable value
 const Integer MaxValue = std::numeric_limits<Integer>::max();
