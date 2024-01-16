@@ -36,7 +36,7 @@ void Master::TerminateWorker()
 void Master::Solve()
 {
   printf("c -----------------solve start----------------------\n");
-  printf("c %-10s\t%-40s\t%-20s\n", "Thread ID", "Obj Value", "Found Time");
+  printf("c %-40s\t%-20s\n", "Obj Value", "Found Time");
   pthread_t *ptr = new pthread_t[OPT(nThreads)];
   for (int tid = 0; tid < OPT(nThreads); tid++)
     pthread_create(&ptr[tid], NULL, WorkerSolve, workerSet[tid]);
