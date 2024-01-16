@@ -5,7 +5,8 @@
 
 Integer paras::identify_opt(const char *file)
 {
-    char name[strlen(file) + 1], p = -1, l = strlen(file);
+    char name[strlen(file) + 1];
+    int p = -1, l = strlen(file);
     for (int i = l - 1; i >= 0; i--)
         if (file[i] == '/')
         {
