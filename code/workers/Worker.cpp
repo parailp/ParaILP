@@ -35,10 +35,7 @@ Worker::Worker(int _tid, Master *_master) : tid(_tid), master(_master), best_obj
   solver->worker = this;
   solver->cbkUpdateSol = cbkUpdateSol;
   solver->cbkUpdatePool = cbkUpdatePopulation;
-  if (OPT(sharingPeriod) == -2)
-    solver->cbkGetSol_Config = NULL;
-  else
-    solver->cbkGetSol_Config = cbkGetSol;
+  solver->cbkGetSol_Config = cbkGetSol;
   solver->terminated = 0;
   solver->isBin = master->modelVarUtil.isBin;
   solver->optValue = master->optValue;
@@ -112,7 +109,7 @@ void Worker::PolarityInitSol()
   {
     auto &modelVar = modelVarUtil.GetVar(varIdx);
     LocalVar &localVar = localVarUtil.GetVar(varIdx);
-    if ((rand_r(&seed) % 100 >= OPT(polarityProp)) && modelVar.inbound(0))
+    if ((rand_r(&seed) % 100 >= 50) && modelVar.inbound(0))
     {
       localVar.nowValue = 0;
       continue;
