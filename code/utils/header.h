@@ -26,6 +26,9 @@ const Integer DefaultUpperBound = 1;
 const Integer DefaultLowerBound = 0;
 const Integer InfiniteUpperBound = 1000000;
 const Integer InfiniteLowerBound = -1000000;
+const int SharingPeriod = 2000;
+const double Punish = 0.0001;
+const int PoolSize  = 7;
 extern string itos(__int128_t v);
 enum class VarType
 {
