@@ -1272,13 +1272,11 @@ void Local_ILP::PrintResult()
 {
   if (isFoundFeasible && VerifySolution())
   {
-    std::cout << "B	 1	 " << itos(GetObjValue()).c_str() << endl;
     if (OPT(PrintSol))
       PrintSol();
   }
   else
     cout << "solution verify failed." << endl;
-  printf("c sharingPeriod: %lld; sharing_times: %ld\n", sharingPeriod, sharingTimes);
 }
 
 void Local_ILP::PrintSol()
