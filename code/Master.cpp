@@ -80,21 +80,9 @@ void Master::Solve()
     printf("o no feasible solution found\n");
   delete[] ptr;
 }
-bool Master::Skip()
-{
-  if (strcmp(fileName, "/pub/netdisk1/linpeng/paralle-local-ILP/miplib_open_hard_17_10_03/zib01.mps") == 0 ||
-      strcmp(fileName, "/pub/netdisk1/linpeng/paralle-local-ILP/miplib_open_hard_17_10_03/zib02.mps") == 0)
-  {
-    printf("o no feasible solution found\n");
-    return true;
-  }
-  return false;
-}
+
 void Master::Run()
 {
-
-  if (Skip())
-    return;
   ReadMPS();
   InitWorkerSet();
   Solve();
@@ -489,48 +477,40 @@ void Master::ReadMPS()
   ModelCon &modelObj = modelConUtil.conSet[0];
   for (size_t idx = 0; idx < modelObj.termNum; ++idx)
     modelVarUtil.varIdx2ObjIdx[modelObj.varIdxSet[idx]] = idx;
-  sharingPeriod = 0;
-  if (OPT(sharingPeriod) == -1)
-    for (size_t conIdx = 0; conIdx < modelConUtil.conNum; conIdx++)
-      sharingPeriod += modelConUtil.conSet[conIdx].termNum;
-  else
-    sharingPeriod = OPT(sharingPeriod);
-  if (OPT(polarityNum) > 0)
-  {
-    lhsAbsSum.resize(modelConUtil.conNum, 0);
-    for (size_t conIdx = 0; conIdx < modelConUtil.conNum; conIdx++)
-      for (size_t idx = 0; idx < modelConUtil.conSet[conIdx].termNum; idx++)
-      {
-        Integer coeff = modelConUtil.conSet[conIdx].coeffSet[idx];
-        size_t varIdx = modelConUtil.conSet[conIdx].varIdxSet[idx];
-        ModelVar &modelVar = modelVarUtil.GetVar(varIdx);
-        Integer varRange = modelVar.upperBound - modelVar.lowerBound;
-        double lhs_i = ((double)coeff / (double)ZoomTimes) * varRange;
-        lhsAbsSum[conIdx] += lhs_i > 0 ? lhs_i : -lhs_i;
-      }
-    Polarity.resize(modelVarUtil.varNum, 0);
-    for (size_t varIdx = 0; varIdx < modelVarUtil.varNum; varIdx++)
+  sharingPeriod = SharingPeriod;
+  lhsAbsSum.resize(modelConUtil.conNum, 0);
+  for (size_t conIdx = 0; conIdx < modelConUtil.conNum; conIdx++)
+    for (size_t idx = 0; idx < modelConUtil.conSet[conIdx].termNum; idx++)
     {
-      auto &modelVar = modelVarUtil.GetVar(varIdx);
-      double IC = 0;
-      double IO = 0;
+      Integer coeff = modelConUtil.conSet[conIdx].coeffSet[idx];
+      size_t varIdx = modelConUtil.conSet[conIdx].varIdxSet[idx];
+      ModelVar &modelVar = modelVarUtil.GetVar(varIdx);
       Integer varRange = modelVar.upperBound - modelVar.lowerBound;
-      if (varRange == 0)
-        continue;
-      for (size_t idx = 0; idx < modelVar.conIdxs.size(); ++idx)
-      {
-        size_t conIdx = modelVar.conIdxs[idx];
-        size_t pos = modelVar.posInCon[idx];
-        Integer coeff = modelConUtil.conSet[conIdx].coeffSet[pos];
-        double lhs_i = (coeff / (double)ZoomTimes) * varRange;
-        if (conIdx == 0)
-          IO = lhs_i / (lhsAbsSum[conIdx]);
-        else
-          IC += lhs_i / (lhsAbsSum[conIdx]);
-      }
-      if (modelVar.conIdxs.size() > 1)
-        IC /= (modelVar.conIdxs.size() - 1);
-      Polarity[varIdx] = IC + IO;
+      double lhs_i = ((double)coeff / (double)ZoomTimes) * varRange;
+      lhsAbsSum[conIdx] += lhs_i > 0 ? lhs_i : -lhs_i;
     }
+  Polarity.resize(modelVarUtil.varNum, 0);
+  for (size_t varIdx = 0; varIdx < modelVarUtil.varNum; varIdx++)
+  {
+    auto &modelVar = modelVarUtil.GetVar(varIdx);
+    double IC = 0;
+    double IO = 0;
+    Integer varRange = modelVar.upperBound - modelVar.lowerBound;
+    if (varRange == 0)
+      continue;
+    for (size_t idx = 0; idx < modelVar.conIdxs.size(); ++idx)
+    {
+      size_t conIdx = modelVar.conIdxs[idx];
+      size_t pos = modelVar.posInCon[idx];
+      Integer coeff = modelConUtil.conSet[conIdx].coeffSet[pos];
+      double lhs_i = (coeff / (double)ZoomTimes) * varRange;
+      if (conIdx == 0)
+        IO = lhs_i / (lhsAbsSum[conIdx]);
+      else
+        IC += lhs_i / (lhsAbsSum[conIdx]);
+    }
+    if (modelVar.conIdxs.size() > 1)
+      IC /= (modelVar.conIdxs.size() - 1);
+    Polarity[varIdx] = IC + IO;
   }
 }
