@@ -64,7 +64,6 @@ private:
 			ModelCon &modelCon);
 	bool TightBoundGlobally();
 	bool SetVarType();
-	bool Skip();
 	size_t deleteVarNum = 0;
 	size_t inferVarNum = 0;
 	size_t deleteConNum = 0;
