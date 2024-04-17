@@ -28,7 +28,7 @@ bool Solution::operator==(const Solution &other) const
 
 Population::Population()
 {
-  temp_diff.resize(OPT(pool_size) + 1, 0);
+  temp_diff.resize(PoolSize + 1, 0);
 }
 
 Solution &Population::operator[](int index)
@@ -65,9 +65,6 @@ bool Master::EnterPopulation(const Integer obj)
 void Master::PopulationUpdate(const vector<LocalVar> &var, const Integer obj, const Config &config)
 {
   boost::mutex::scoped_lock lock(population.mtx_pool);
-  // boost::unique_lock<boost::shared_mutex> lock(pool.mtx_pool);
-  if (OPT(pool_size) < 1)
-    return;
   if (population.size() == 0)
   {
     population.solutions.emplace_back(var, obj, config);
@@ -86,7 +83,7 @@ void Master::PopulationUpdate(const vector<LocalVar> &var, const Integer obj, co
     population.temp_diff[i] += new_diff;
     population.temp_diff[new_idx] += new_diff;
   }
-  if (population.size() <= OPT(pool_size))
+  if (population.size() <= PoolSize)
   {
     for (int i = 0; i < population.size(); i++)
       population[i].diff = population.temp_diff[i];
@@ -103,7 +100,7 @@ void Master::PopulationUpdate(const vector<LocalVar> &var, const Integer obj, co
       obj_rank += (population[i].obj < population[j].obj);
       diff_rank += (population.temp_diff[i] > population.temp_diff[j]);
     }
-    population[i].score = diff_rank * OPT(rankpara) + obj_rank * (100 - OPT(rankpara)); // max is better
+    population[i].score = diff_rank * 20 + obj_rank * 80; // max is better
     if (worst_index == -1 || population[i].score < worst_score)
     {
       worst_index = i;
@@ -142,11 +139,11 @@ bool Master::PopulationSharing(Local_ILP *solver)
   size_t sol_idx_1 = solver->mt() % population.size();
   size_t config_idx = solver->mt() % population.size();
   const auto &sol_1 = population[sol_idx_1].sol;
-  double punish_coeff = 1 + OPT(punish);
+  double punish_coeff = 1 + Punish;
   if (population[sol_idx_1].obj < 0)
-    punish_coeff = 1 - OPT(punish);
+    punish_coeff = 1 - Punish;
   population[sol_idx_1].obj *= punish_coeff;
-  if (solver->mt() % 100 < OPT(feas_prop))
+  if (solver->mt() % 100 < 50)
   {
     for (size_t idx = 0; idx < sol_1.size(); idx++)
       solver->localVarUtil.varSet[idx].nowValue = sol_1[idx];
@@ -170,7 +167,7 @@ bool Master::PopulationSharing(Local_ILP *solver)
       {
         auto &var = solver->localVarUtil.GetVar(idx);
         const auto &common_var = modelVarUtil.GetVar(idx);
-        if (solver->mt() % 100 < OPT(pert_prop))
+        if (solver->mt() % 100 < 25)
           var.nowValue = common_var.lowerBound + solver->mt() % (common_var.upperBound + 1 - common_var.lowerBound);
       }
     else
@@ -184,7 +181,7 @@ bool Master::PopulationSharing(Local_ILP *solver)
         {
           if (solver->mt() % 100 < 50)
             var.nowValue = sol_2[idx];
-          if (solver->mt() % 100 < OPT(pert_prop))
+          if (solver->mt() % 100 < 25)
             var.nowValue = common_var.lowerBound + solver->mt() % (common_var.upperBound + 1 - common_var.lowerBound);
         }
       }
@@ -192,53 +189,53 @@ bool Master::PopulationSharing(Local_ILP *solver)
     }
   }
   const auto &_config = population[config_idx].config;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->sampleUnsat = _config.sampleUnsat;
   else
     solver->sampleUnsat = 2 + solver->mt() % 4;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->bmsUnsat = _config.bmsUnsat;
   else
     solver->bmsUnsat = 1000 + solver->mt() % 2000;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->sampleSat = _config.sampleSat;
   else
     solver->sampleSat = 15 + solver->mt() % 30;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->bmsSat = _config.bmsSat;
   else
     solver->bmsSat = 175 + solver->mt() % 350;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->bmsRandom = _config.bmsRandom;
   else
     solver->bmsRandom = 30 + solver->mt() % 60;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->bmsPair = _config.bmsPair;
   else
     solver->bmsPair = 38 + solver->mt() % 77;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->bmsRan = _config.bmsRan;
   else
     solver->bmsRan = 75 + solver->mt() % 150;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->weightUpperBound = _config.weight_upb;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->objWeightUpperBound = _config.obj_weight_upb;
   else
     solver->objWeightUpperBound = solver->weightUpperBound / ((solver->mt() % 20) + 1);
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->greadyScore = _config.greadyScore;
   else
     solver->greadyScore = solver->mt() % 2;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->satTightMove = _config.satTightMove;
   else
     solver->satTightMove = solver->mt() % 2;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->pairTightMove = _config.pairTightMove;
   else
     solver->pairTightMove = solver->mt() % 2;
-  if (solver->mt() % 100 < OPT(config_prop))
+  if (solver->mt() % 100 < 75)
     solver->rvd = _config.rvd;
   else
     solver->rvd = solver->mt() % 2 ? 1 : 0.5;
